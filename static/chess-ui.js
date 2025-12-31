@@ -47,6 +47,7 @@ class ChessUI {
         this.statusEl = document.getElementById('status');
         this.flipBtn = document.getElementById('flip-btn');
         this.resetBtn = document.getElementById('reset-btn');
+        this.stateJsonEl = document.getElementById('state-json');
 
         this.init();
     }
@@ -113,6 +114,7 @@ class ChessUI {
         this.highlightLastMove();
         this.highlightCheck();
         this.updateStatus();
+        this.updateStatePanel();
     }
 
     bindEvents() {
@@ -149,6 +151,22 @@ class ChessUI {
         // Button events
         this.flipBtn.addEventListener('click', () => this.flipBoard());
         this.resetBtn.addEventListener('click', () => this.resetGame());
+
+        // Copy JSON event
+        const copyBtn = document.getElementById('copy-json-btn');
+        if (copyBtn) {
+            copyBtn.addEventListener('click', () => {
+                if (this.stateJsonEl) {
+                    navigator.clipboard.writeText(this.stateJsonEl.textContent)
+                        .then(() => {
+                            const originalText = copyBtn.textContent;
+                            copyBtn.textContent = 'Copied!';
+                            setTimeout(() => copyBtn.textContent = originalText, 2000);
+                        })
+                        .catch(err => console.error('Failed to copy JSON: ', err));
+                }
+            });
+        }
     }
 
     handleSquareClick(e) {
@@ -399,6 +417,18 @@ class ChessUI {
         this.statusEl.className = `status ${statusClass}`;
     }
 
+    updateStatePanel() {
+        if (!this.stateJsonEl) return;
+
+        const state = {
+            fen: this.game.fen(),
+            lastMove: this.lastMove,
+            annotations: this.annotations
+        };
+
+        this.stateJsonEl.textContent = JSON.stringify(state, null, 2);
+    }
+
     async makeMove(moveUci) {
         // Handle promotion - default to queen
         let finalMove = moveUci;
@@ -505,6 +535,7 @@ class ChessUI {
     handleDrawingStart(e) {
         e.preventDefault();
         const square = this.getSquareFromEvent(e);
+        console.log('Drawing Start:', square, e.button);
         if (!square) return;
 
         this.drawingState = {
@@ -530,11 +561,14 @@ class ChessUI {
     }
 
     handleDrawingEnd(e) {
+        console.log('Drawing End:', this.drawingState, e.button);
         if (!this.drawingState.isDrawing) return;
 
         const endSquare = this.getSquareFromEvent(e) || this.drawingState.currentSquare;
         const startSquare = this.drawingState.startSquare;
         const color = this.getAnnotationColor(this.drawingState.modifiers);
+
+        console.log('Finishing annotation:', { start: startSquare, end: endSquare, color });
 
         if (startSquare === endSquare) {
             // Circle
@@ -547,7 +581,12 @@ class ChessUI {
         this.drawingState.isDrawing = false;
         this.drawingState.startSquare = null;
         this.drawingState.currentSquare = null;
-        this.renderAnnotations();
+
+        try {
+            this.renderAnnotations();
+        } catch (err) {
+            console.error('Error rendering annotations:', err);
+        }
     }
 
     getSquareFromEvent(e) {
@@ -595,11 +634,14 @@ class ChessUI {
     }
 
     clearAnnotations() {
+        console.log('Clearing annotations');
         this.annotations = { arrows: [], circles: [] };
         this.renderAnnotations();
     }
 
     renderAnnotations() {
+        this.updateStatePanel();
+
         // Clear SVG
         this.drawingLayer.innerHTML = '';
 

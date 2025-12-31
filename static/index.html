@@ -9,7 +9,7 @@
 </head>
 
 <body>
-    <div class="container">
+    <div class="main-container">
         <div class="game-wrapper">
             <div id="board" class="board">
                 <svg id="drawing-layer" class="drawing-layer"></svg>
@@ -22,10 +22,17 @@
                 </div>
             </div>
         </div>
+        <div class="json-panel">
+            <div class="json-header">
+                <h3>Game State</h3>
+                <button id="copy-json-btn" class="copy-btn">Copy JSON</button>
+            </div>
+            <pre><code id="state-json"></code></pre>
+        </div>
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
-    <script src="/chess-ui.js?v=3"></script>
+    <script src="/chess-ui.js?v=4"></script>
 </body>
 
 </html>
