@@ -1,0 +1,247 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+}
+
+.container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.game-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    align-items: center;
+}
+
+/* Chess Board */
+.board {
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);
+    grid-template-rows: repeat(8, 1fr);
+    width: min(85vw, 560px);
+    height: min(85vw, 560px);
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow:
+        0 25px 50px -12px rgba(0, 0, 0, 0.5),
+        0 0 0 4px rgba(255, 255, 255, 0.1);
+    position: relative;
+}
+
+/* SVG Drawing Layer for Annotations */
+.drawing-layer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 100;
+    overflow: visible;
+}
+
+.board.flipped {
+    transform: rotate(180deg);
+}
+
+.board.flipped .square {
+    transform: rotate(180deg);
+}
+
+/* Squares */
+.square {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    cursor: pointer;
+    transition: background-color 0.15s ease;
+}
+
+.square.light {
+    background-color: #f0d9b5;
+}
+
+.square.dark {
+    background-color: #b58863;
+}
+
+/* Selected square */
+.square.selected {
+    background-color: #829769 !important;
+    box-shadow: inset 0 0 0 3px rgba(255, 255, 255, 0.3);
+}
+
+/* Legal move indicators */
+.square.legal-move::after {
+    content: '';
+    position: absolute;
+    width: 30%;
+    height: 30%;
+    background-color: rgba(0, 0, 0, 0.15);
+    border-radius: 50%;
+    pointer-events: none;
+}
+
+.square.legal-capture::after {
+    content: '';
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    border: 5px solid rgba(0, 0, 0, 0.15);
+    border-radius: 50%;
+    box-sizing: border-box;
+    pointer-events: none;
+}
+
+/* Last move highlighting */
+.square.last-move {
+    background-color: #cdd26a !important;
+}
+
+.square.dark.last-move {
+    background-color: #aaa23a !important;
+}
+
+/* Check indicator */
+.square.in-check {
+    background: radial-gradient(ellipse at center,
+            rgba(255, 0, 0, 0.8) 0%,
+            rgba(255, 0, 0, 0.5) 40%,
+            rgba(255, 0, 0, 0.2) 70%,
+            transparent 100%) !important;
+}
+
+/* Pieces */
+.piece {
+    width: 85%;
+    height: 85%;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    cursor: grab;
+    transition: transform 0.1s ease;
+    z-index: 1;
+}
+
+.piece:hover {
+    transform: scale(1.05);
+}
+
+.piece.dragging {
+    opacity: 0.4;
+    cursor: grabbing;
+}
+
+/* Ghost piece (dragged) */
+.ghost-piece {
+    position: fixed;
+    width: 70px;
+    height: 70px;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    pointer-events: none;
+    z-index: 1000;
+    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
+}
+
+/* Controls */
+.controls {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    align-items: center;
+    width: 100%;
+    max-width: 560px;
+}
+
+.status {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #e0e0e0;
+    text-align: center;
+    padding: 12px 24px;
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 8px;
+    backdrop-filter: blur(10px);
+    min-width: 200px;
+}
+
+.status.check {
+    color: #ff6b6b;
+    background: rgba(255, 107, 107, 0.15);
+}
+
+.status.checkmate {
+    color: #ff4757;
+    background: rgba(255, 71, 87, 0.2);
+    font-weight: 700;
+}
+
+.status.stalemate,
+.status.draw {
+    color: #ffa502;
+    background: rgba(255, 165, 2, 0.15);
+}
+
+.buttons {
+    display: flex;
+    gap: 12px;
+}
+
+.btn {
+    padding: 12px 24px;
+    font-size: 1rem;
+    font-weight: 600;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background: rgba(255, 255, 255, 0.1);
+    color: #e0e0e0;
+    backdrop-filter: blur(10px);
+}
+
+.btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: translateY(-2px);
+}
+
+.btn:active {
+    transform: translateY(0);
+}
+
+.btn-reset {
+    background: rgba(229, 62, 62, 0.3);
+}
+
+.btn-reset:hover {
+    background: rgba(229, 62, 62, 0.5);
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+    .buttons {
+        flex-direction: column;
+        width: 100%;
+    }
+
+    .btn {
+        width: 100%;
+    }
+}

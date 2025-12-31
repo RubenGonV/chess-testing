@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chess</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <div class="container">
+        <div class="game-wrapper">
+            <div id="board" class="board">
+                <svg id="drawing-layer" class="drawing-layer"></svg>
+            </div>
+            <div class="controls">
+                <div id="status" class="status">White to move</div>
+                <div class="buttons">
+                    <button id="flip-btn" class="btn">⟳ Flip Board</button>
+                    <button id="reset-btn" class="btn btn-reset">↺ Reset Game</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
+    <script src="/chess-ui.js?v=3"></script>
+</body>
+
+</html>
