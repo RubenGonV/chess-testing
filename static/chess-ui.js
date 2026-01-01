@@ -35,10 +35,17 @@ class ChessUI {
             modifiers: { shift: false, ctrl: false, alt: false }
         };
         this.annotationColors = {
-            default: 'rgba(21, 120, 60, 0.8)',   // green
-            shift: 'rgba(255, 170, 0, 0.8)',     // orange
-            ctrl: 'rgba(200, 40, 50, 0.8)',      // red
-            alt: 'rgba(50, 120, 200, 0.8)'       // blue
+            default: 'Green',
+            shift: 'Orange',
+            ctrl: 'Red',
+            alt: 'Blue'
+        };
+
+        this.colorValues = {
+            'Green': 'rgba(21, 120, 60, 0.8)',
+            'Orange': 'rgba(255, 170, 0, 0.8)',
+            'Red': 'rgba(200, 40, 50, 0.8)',
+            'Blue': 'rgba(50, 120, 200, 0.8)'
         };
 
         // DOM elements
@@ -366,8 +373,12 @@ class ChessUI {
     highlightLastMove() {
         if (!this.lastMove) return;
 
-        const fromSquare = this.boardEl.querySelector(`[data-square="${this.lastMove.from}"]`);
-        const toSquare = this.boardEl.querySelector(`[data-square="${this.lastMove.to}"]`);
+        // lastMove is now a UCI string e.g. "e2e4"
+        const from = this.lastMove.substring(0, 2);
+        const to = this.lastMove.substring(2, 4);
+
+        const fromSquare = this.boardEl.querySelector(`[data-square="${from}"]`);
+        const toSquare = this.boardEl.querySelector(`[data-square="${to}"]`);
 
         if (fromSquare) fromSquare.classList.add('last-move');
         if (toSquare) toSquare.classList.add('last-move');
@@ -458,7 +469,7 @@ class ChessUI {
 
             if (data.valid) {
                 // Store last move
-                this.lastMove = { from, to };
+                this.lastMove = from + to;
 
                 // Update game state
                 this.game.load(data.fen);
@@ -508,6 +519,7 @@ class ChessUI {
             this.lastMove = null;
             this.selectedSquare = null;
 
+            this.clearAnnotations();
             this.renderPosition();
         } catch (error) {
             console.error('Reset failed:', error);
@@ -605,8 +617,10 @@ class ChessUI {
     }
 
     toggleArrow(from, to, color) {
+        // color is now a name like 'Green'
+        const move = from + to;
         const idx = this.annotations.arrows.findIndex(
-            a => a.from === from && a.to === to
+            a => a.move === move
         );
         if (idx !== -1) {
             // Same arrow exists - toggle off or change color
@@ -616,7 +630,7 @@ class ChessUI {
                 this.annotations.arrows[idx].color = color;
             }
         } else {
-            this.annotations.arrows.push({ from, to, color });
+            this.annotations.arrows.push({ move, color });
         }
     }
 
@@ -659,22 +673,25 @@ class ChessUI {
         // Draw circles
         for (const circle of this.annotations.circles) {
             console.log('Drawing circle at', circle.square);
-            this.drawCircle(circle.square, circle.color, squareSize);
+            this.drawCircle(circle.square, this.colorValues[circle.color], squareSize);
         }
 
         // Draw arrows
         for (const arrow of this.annotations.arrows) {
-            this.drawArrow(arrow.from, arrow.to, arrow.color, squareSize);
+            const from = arrow.move.substring(0, 2);
+            const to = arrow.move.substring(2, 4);
+            this.drawArrow(from, to, this.colorValues[arrow.color], squareSize);
         }
 
         // Draw preview arrow if drawing
         if (this.drawingState.isDrawing &&
             this.drawingState.startSquare !== this.drawingState.currentSquare) {
-            const color = this.getAnnotationColor(this.drawingState.modifiers);
+            const colorName = this.getAnnotationColor(this.drawingState.modifiers);
+            const colorRgba = this.colorValues[colorName];
             this.drawArrow(
                 this.drawingState.startSquare,
                 this.drawingState.currentSquare,
-                color.replace('0.8', '0.5'), // More transparent for preview
+                colorRgba.replace('0.8', '0.5'), // More transparent for preview
                 squareSize
             );
         }
@@ -697,7 +714,7 @@ class ChessUI {
 
     drawCircle(square, color, squareSize) {
         const center = this.getSquareCenter(square, squareSize);
-        const radius = squareSize * 0.4;
+        const radius = squareSize * 0.45;
 
         const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
         circle.setAttribute('cx', center.x);
@@ -721,7 +738,7 @@ class ChessUI {
         const angle = Math.atan2(dy, dx);
 
         const headLength = squareSize * 0.35;
-        const headWidth = squareSize * 0.25;
+        const headWidth = squareSize * 0.45;
         const strokeWidth = squareSize * 0.15;
 
         // Shorten line to make room for arrowhead
