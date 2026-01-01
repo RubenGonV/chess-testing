@@ -5,6 +5,17 @@ import chess
 
 app = FastAPI()
 
+# Add CORS middleware to allow external apps to connect
+from fastapi.middleware.cors import CORSMiddleware
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 
 class MoveRequest(BaseModel):
     fen: str
